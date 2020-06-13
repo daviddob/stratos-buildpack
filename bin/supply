@@ -1,0 +1,48 @@
+#!/bin/bash
+
+if [[ -n "${STRATOS_BP_DEBUG}" ]]; then
+  echo "Turning on bash traces as instructed in STRATOS_BP_DEBUG=${STRATOS_BP_DEBUG}"
+  echo "Undefine the variable to turn debugging off"
+  set -x
+fi
+
+set -euo pipefail
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+DEPS_DIR=$3
+INDEX=$4
+
+export BUILDPACK_DIR=`dirname $(readlink -f ${BASH_SOURCE%/*})`
+NEED_NODE=true
+
+if [ -f $BUILD_DIR/stratos-debug ]; then
+  ${BUILDPACK_DIR}/bin/debug $1 $2
+fi
+
+# Don't need node if the frontend UI is pre-built and we're using dep
+if [ -f "$BUILD_DIR/stratos-frontend-prebuild.zip" ] && [ -f  "$BUILD_DIR/Gopkg.toml" ]; then
+  NEED_NODE=false
+fi
+
+# Install yq
+source "$BUILDPACK_DIR/scripts/install_yq.sh"
+export PATH=$YQInstallDir/bin:$PATH
+
+# Install go
+source "$BUILDPACK_DIR/scripts/install_go.sh"
+export PATH=$GoInstallDir/bin:$PATH
+
+# Install node if needed
+if [ "$NEED_NODE" == "true" ]; then
+  # Install nodejs
+  source "$BUILDPACK_DIR/scripts/install_nodejs.sh"
+  export PATH=$NodeInstallDir/bin:$PATH
+fi
+
+echo "-----> Checking versions"
+if [ "$NEED_NODE" == "true" ]; then
+  echo "---------> Node Version: `node --version`"
+  echo "---------> NPM Version: `npm --version`"
+fi
+echo "---------> Go Version: `go version`"
