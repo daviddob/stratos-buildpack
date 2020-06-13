@@ -1,7 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-NODE_VERSION="12.18.0"
+NODE_VERSION=$(yq r $BUILDPACK_DIR/manifest.yml 'dependencies.(name==node)'.version)
+NODE_SHA=$(yq r $BUILDPACK_DIR/manifest.yml 'dependencies.(name==node)'.sha256)
+NODE_URL=$(yq r $BUILDPACK_DIR/manifest.yml 'dependencies.(name==node)'.uri)
 
 DOWNLOAD_FOLDER=${CACHE_DIR}/Downloads
 mkdir -p ${DOWNLOAD_FOLDER}
@@ -10,7 +12,7 @@ DOWNLOAD_FILE=${DOWNLOAD_FOLDER}/node${NODE_VERSION}.tar.gz
 export NodeInstallDir="${DEPS_DIR}/${INDEX}/node"
 mkdir -p $NodeInstallDir
 
-CACHED_DOWNLOAD_FILE=$BUILDPACK_DIR/dependencies/*/node-*.tgz
+CACHED_DOWNLOAD_FILE=${BUILDPACK_DIR}/$(yq r $BUILDPACK_DIR/manifest.yml 'dependencies.(name==node)'.file)
 if [ -f $CACHED_DOWNLOAD_FILE ]; then
   echo "-----> nodejs install package included in offline buildpack"
   DOWNLOAD_FILE=$CACHED_DOWNLOAD_FILE
@@ -20,10 +22,8 @@ else
     # Delete any cached node downloads, since those are now out of date
     rm -rf ${DOWNLOAD_FOLDER}/node*.tar.gz
 
-    NODE_SHA="8aaf25f7319629857d02f4b666b818e2fba78bc0fd2c9561cfa746f7555272f8"
-    URL=https://buildpacks.cloudfoundry.org/dependencies/node/node_12.18.0_linux_x64_cflinuxfs3_8aaf25f7.tgz
     echo "-----> Download Nodejs ${NODE_VERSION}"
-    curl -s -L --retry 15 --retry-delay 2 $URL -o ${DOWNLOAD_FILE}
+    curl -s -L --retry 15 --retry-delay 2 $NODE_URL -o ${DOWNLOAD_FILE}
 
     DOWNLOAD_SHA=$(sha256sum ${DOWNLOAD_FILE} | cut -d ' ' -f 1)
     if [[ $DOWNLOAD_SHA != $NODE_SHA ]]; then

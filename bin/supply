@@ -28,6 +28,7 @@ fi
 # Install yq
 source "$BUILDPACK_DIR/scripts/install_yq.sh"
 export PATH=$YQInstallDir/bin:$PATH
+yq --version
 
 # Install go
 source "$BUILDPACK_DIR/scripts/install_go.sh"

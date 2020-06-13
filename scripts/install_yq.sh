@@ -6,7 +6,7 @@ mkdir -p ${DOWNLOAD_FOLDER}
 DOWNLOAD_FILE=${DOWNLOAD_FOLDER}/yq_linux_amd64
 
 export YQInstallDir="${DEPS_DIR}/${INDEX}/yq"
-mkdir -p $YQInstallDir
+mkdir -p $YQInstallDir/bin
 
 CACHED_DOWNLOAD_FILE=$BUILDPACK_DIR/dependencies/*/yq_linux_amd64
 if [ -f $CACHED_DOWNLOAD_FILE ]; then
@@ -33,12 +33,12 @@ else
   fi
 fi
 
-if [ ! -f $YQInstallDir/yq ]; then
-  cp ${DOWNLOAD_FILE} $YQInstallDir/yq
-  chmod +x $YQInstallDir/yq
+if [ ! -f $YQInstallDir/bin/yq ]; then
+  cp ${DOWNLOAD_FILE} $YQInstallDir/bin/yq
+  chmod +x $YQInstallDir/bin/yq
 fi
 
-if [ ! -f $YQInstallDir/yq ]; then
+if [ ! -f $YQInstallDir/bin/yq ]; then
   echo "       **ERROR** Could not download yq"
   exit 1
 fi
